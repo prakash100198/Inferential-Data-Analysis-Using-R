@@ -1,0 +1,139 @@
+---
+title: "Project on Inferential Data Analysis Using R"
+author: "-PRAKASH"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This R Markdown document is dedicated to statistical inference analysis using t-distribution and p-values. 
+For this project we will analyze the ToothGrowth dataset in R-studio. ToothGrowth is a dataset of tooth growth rate of guinea pigs when they were given 2 different type of Vitamin C - **Orange Juice** and **Ascorbic Acid** with  three kinds of doses given to them 0.5mg/day,1mg/day and 2mg/day.
+
+We will study this dataset do some EDA and try to gain more insight and finally we will use t.test() function to test 4 hypothesis about tooth growth and end our discussion with a conclusion.
+
+Let's load some packages and take a look at features of this data set.
+```{r loading packages,warning=F,message=F}
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+table(ToothGrowth$supp,ToothGrowth$dose)
+summary(ToothGrowth)
+str(ToothGrowth)
+
+```
+
+## EDA on ToothGrowth Dataset
+
+
+```{r grouping}
+tg<- ToothGrowth%>%group_by(supp,dose)
+levels(tg$supp)<-c("Orange Juice","Ascorbic Acid")
+tg
+```
+
+Now let's have a look at dossage wise distribution of tooth length.
+```{r plot dossage wise}
+g1<-ggplot(tg,aes(x=len,fill=factor(dose)))
+g1+geom_density(alpha=0.2)+theme_bw()+labs(title = "Guinea pig tooth length by dossage",x="Tooth Length")
+```
+
+Now we ill assume that the tooth length is normally distributed although above plot vaguely resembles a normal distribution.
+
+Now moving ahead.
+Let's summarize thiss data according to supplement and dossage to have a clear picture of means corresponding to each group.
+```{r summarize}
+tg_supp_dose<-summarise(tg,mean_len = mean(len))
+tg_supp_dose<-as.data.frame(tg_supp_dose)
+levels(tg_supp_dose$supp)<-c("Orange Juice","Ascorbic Acid")
+tg_supp_dose
+```
+
+Now we'll look at basic plot summary of above dataset .
+```{r plot summary}
+g<-ggplot(tg,aes(x=len,color=factor(dose),fill = factor(dose)))
+g<-g+geom_density(alpha=0.4)+facet_grid(dose~supp) + theme_bw() + geom_vline(data = tg_supp_dose, aes(xintercept= mean_len)) 
+
+g<-g+geom_text(data = tg_supp_dose,aes(x=mean_len,label = mean_len),y = 0.1, angle = 90, vjust = -0.2,color="black",size=3.5)
+
+g+labs(title = "Guinea pig tooth length by dossage for each type of supplement",x ="Tooth Length")
+```
+
+### Hypothesis tests to compare tooth growth by supp and dose.
+
+We will test 4 hypothesis which are as follows:  
+
+##### Hypothesis 1:  
+**Orange juice and ascorbic acid deliever the same growth rate of tooth.**
+
+```{r hypothesis 1}
+hypo1<-t.test(len~supp,data = tg)
+hypo1$conf.int
+hypo1$p.value
+```
+The confidence interval includes 0 so we can't deny the fact that they can offer same growth rate.
+Also the p value is larger than 0.05 so we fail to reject the null hypo ,and hence we accept that overall orange juice and ascorbic acid deliever the same growth rate of tooth.
+
+##### Hypothesis 2:  
+**For dosage 0.5 mg/day the tooth growth rate is same.**
+
+```{r hypothesis 2}
+hypo2<-t.test(len~supp,data = subset(tg,dose==0.5))
+hypo2$conf.int
+hypo2$p.value
+```
+Since the confidence interval doesn't include 0 and the p valuse is also less than 0.05 so we reject null hypothesis 2.Alternate hypothesis which is 0.5 mg dosage of orange juice give more growth than 0.5 mg of ascorbic acid is accepted.
+
+##### Hypothesis 3:  
+**For dosage 1 mg/day the tooth growth rate is same.**
+
+```{r hypothesis 3}
+hypo3<-t.test(len~supp,data = subset(tg,dose==1))
+hypo3$conf.int
+hypo3$p.value
+```
+Since the confidence interval doesn't include 0 and the p valuse is also less than 0.05 so we reject null hypothesis 3.Alternate hypothesis which is 1 mg/day dosage of orange juice give more growth than 1 mg/day of ascorbic acid is accepted.
+
+
+##### Hypothesis 4:  
+**For dosage 2 mg/day the tooth growth rate is same.**
+
+```{r hypothesis 4}
+hypo4<-t.test(len~supp,data = subset(tg,dose==2))
+hypo4$conf.int
+hypo4$p.value
+```
+Since the confidence interval  include 0 and the p valuse is also well beyond 0.05 so we fail to  reject null hypothesis 4.Null hypothesis which is 2 mg/day dosage of orange juice give more growth than 2 mg/day of ascorbic acid is accepted.
+
+### Conclusion and Assumptions:
+
+Orange juice delievers more tooth growth than ascorbic acid for 0.5 mg/day and 1mg/day dossage.Orange juice delievers same tooth growth as compared to ascorbic acid for 2 mg/day dossage.
+For the entire dataset we can't conclude that orange juice delievers more tooth growth than ascorbic acid.
+
+**Assumptions:**  
+1. Normal distribution of tooth length.  
+2. No other factor or unmeasured factors are affecting our dataset.  
+
+So this was a Project on Inferential Data Analysis using ToothGrowth dataset in R.  
+Thank you for reading.  
+Cheers ;)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
